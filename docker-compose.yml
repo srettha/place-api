@@ -1,0 +1,26 @@
+version: '2.4'
+services:
+  db:
+    image: postgres:alpine
+    container_name: place-db
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: pg_isready -U postgres -h 127.0.0.1
+      interval: 5s
+  app:
+    container_name: place-api
+    build:
+      context: ./
+      target: dev
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: place-db
+    ports:
+      - '3000:3000'
+    restart: always
+    volumes:
+      - ./:/usr/src/app:delegated
+      - $GOPATH/pkg/mod/cache:/go/pkg/mod/cache
